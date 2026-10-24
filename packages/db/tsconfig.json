@@ -1,6 +1,6 @@
 {
-  "extends": "@desconfia/config/tsconfig.base.json",
-  "compilerOptions": {
-    "noEmit": true
-  }
+	"extends": "@desconfia/config/tsconfig.base.json",
+	"compilerOptions": {
+		"noEmit": true
+	}
 }

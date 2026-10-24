@@ -3,6 +3,7 @@ import { ExternalLink } from "lucide-react";
 import {
 	type Finding,
 	formatDate,
+	formatShareText,
 	type Report,
 	sourceKindLabels,
 	verdictLabels,
@@ -108,7 +109,7 @@ export function ReportView({
 						</a>
 					</p>
 				) : null}
-				<div className="flex flex-wrap items-center justify-between gap-4 border-y py-4">
+				<div className="space-y-4 border-y py-4">
 					<dl className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
 						<div className="flex items-center gap-2">
 							<dt className="sr-only">Avaliação</dt>
@@ -134,6 +135,7 @@ export function ReportView({
 					</dl>
 					<ShareActions
 						title={`${verdictLabels[report.verdict]}: ${report.claim}`}
+						text={formatShareText(report)}
 					/>
 				</div>
 				<p className="text-lg leading-relaxed text-pretty">{report.summary}</p>

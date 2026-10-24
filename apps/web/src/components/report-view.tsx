@@ -1,5 +1,6 @@
 import { Badge } from "@desconfia/ui/components/badge";
 import { ExternalLink } from "lucide-react";
+import Link from "next/link";
 import {
 	type Finding,
 	formatDate,
@@ -119,6 +120,12 @@ export function ReportView({
 									className="h-7 px-3 text-sm"
 								/>
 							</dd>
+							<Link
+								href="/sobre#avaliacoes"
+								className="text-muted-foreground hover:text-foreground text-xs underline underline-offset-2 print:hidden"
+							>
+								O que significa?
+							</Link>
 						</div>
 						<div className="flex gap-1.5">
 							<dt className="text-muted-foreground">Confiança:</dt>
@@ -216,6 +223,9 @@ export function ReportView({
 									/>
 									<span className="sr-only">(abre em nova aba)</span>
 								</a>
+								<p className="hidden text-xs break-all print:block">
+									{source.url}
+								</p>
 								{source.excerpt ? (
 									<p className="text-muted-foreground line-clamp-3 text-sm leading-relaxed">
 										{source.excerpt}

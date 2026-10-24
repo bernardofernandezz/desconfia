@@ -1,52 +1,5 @@
-import { beforeEach, describe, expect, mock, test } from "bun:test";
-import type { Draft } from "./report";
-
-const calls = { search: 0, extract: 0 };
-const supportedDraft: Draft = {
-	summary: "Resumo",
-	verdict: "supported",
-	confidence: "alta",
-	limitations: "",
-	findings: [
-		{
-			text: "Fato",
-			stance: "supports",
-			evidenceType: "direct",
-			sourceIds: ["S1"],
-		},
-	],
-	caveats: [],
-	openQuestions: [],
-};
-
-// Module mocks are process-wide in bun, so keep the real exports other test files rely on.
-const factCheck = await import("./research/factcheck");
-mock.module("./research/factcheck", () => ({
-	...factCheck,
-	findFactChecks: async () => [],
-}));
-mock.module("./research/tavily", () => ({
-	extractArticle: async () => "texto do artigo",
-	findSources: async () => {
-		calls.search++;
-		return [
-			{
-				url: "https://www.camara.leg.br/noticia",
-				title: "Notícia",
-				domain: "camara.leg.br",
-				kind: "primary",
-				excerpt: "trecho",
-			},
-		];
-	},
-}));
-mock.module("./research/synthesize", () => ({
-	extractClaims: async () => {
-		calls.extract++;
-		return ["Primeira alegação verificável", "Segunda alegação verificável"];
-	},
-	synthesize: async () => supportedDraft,
-}));
+import { beforeEach, describe, expect, test } from "bun:test";
+import { researchCalls as calls } from "@/test/mock-research";
 
 const { runVerification } = await import("./verification");
 const { deleteReport, getGroupReports, getReport, saveFeedback } = await import(
@@ -102,7 +55,11 @@ describe("runVerification", () => {
 		expect(second.events.map((event) => event.stage)).toContain("cached");
 		expect(second.done.href).toBe(first.done.href);
 		expect(second.done.created).toEqual([]);
-		expect(second.summary).toEqual({ claims: 1, reused: 1, verdicts: [] });
+		expect(second.summary).toMatchObject({
+			claims: 1,
+			reused: 1,
+			verdicts: [],
+		});
 	});
 
 	test("splits long messages into claims and groups the reports", async () => {

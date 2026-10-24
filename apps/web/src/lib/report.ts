@@ -36,6 +36,8 @@ export type Source = {
 	excerpt: string;
 };
 
+export type SourceCandidate = Omit<Source, "id">;
+
 export type Finding = z.infer<typeof findingSchema>;
 export type Draft = z.infer<typeof draftSchema>;
 export type Verdict = Draft["verdict"];
@@ -43,6 +45,8 @@ export type Verdict = Draft["verdict"];
 export type Report = Draft & {
 	claim: string;
 	inputUrl: string | null;
+	fromImage?: boolean;
+	previousId?: string;
 	sources: Source[];
 	researchedAt: string;
 };

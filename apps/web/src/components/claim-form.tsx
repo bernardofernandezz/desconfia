@@ -1,19 +1,19 @@
 "use client";
 
-import {
-	Alert,
-	AlertDescription,
-	AlertTitle,
-} from "@desconfia/ui/components/alert";
 import { Button } from "@desconfia/ui/components/button";
-import { AlertCircle, ArrowRight, Link2, Loader2 } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { ArrowRight, ImagePlus, Link2, Loader2, X } from "lucide-react";
 import { useRef, useState } from "react";
-import type { VerifyEvent } from "@/app/api/verify/route";
-import { useFocusOnMount } from "@/hooks/use-focus-on-mount";
-import { parseInput } from "@/lib/research/input";
+import {
+	useVerification,
+	type VerificationPayload,
+} from "@/hooks/use-verification";
+import {
+	acceptedImageTypes,
+	MAX_IMAGE_BYTES,
+	parseInput,
+} from "@/lib/research/input";
 import { ResearchProgress } from "./research-progress";
+import { VerificationFailure } from "./verification-failure";
 
 const exampleClaims = [
 	"O governo criou um imposto sobre o PIX",
@@ -21,89 +21,63 @@ const exampleClaims = [
 	"O presidente pode se reeleger quantas vezes quiser",
 ];
 
-type Failure = { code: string; message: string };
-
-async function* readEvents(response: Response) {
-	const reader = response.body
-		?.pipeThrough(new TextDecoderStream())
-		.getReader();
-	if (!reader) return;
-	let buffer = "";
-	while (true) {
-		const { value, done } = await reader.read();
-		if (done) break;
-		buffer += value;
-		const lines = buffer.split("\n");
-		buffer = lines.pop() ?? "";
-		for (const line of lines)
-			if (line.trim()) yield JSON.parse(line) as VerifyEvent;
-	}
+function validateImage(file: File) {
+	if (!(acceptedImageTypes as string[]).includes(file.type))
+		return "Envie uma imagem PNG, JPEG ou WebP.";
+	if (file.size > MAX_IMAGE_BYTES) return "A imagem pode ter no máximo 5 MB.";
+	return null;
 }
 
 export function ClaimForm() {
-	const router = useRouter();
+	const verification = useVerification();
+	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [query, setQuery] = useState("");
+	const [image, setImage] = useState<File | null>(null);
 	const [fieldError, setFieldError] = useState<string | null>(null);
-	const [failure, setFailure] = useState<Failure | null>(null);
-	const [events, setEvents] = useState<VerifyEvent[] | null>(null);
-	const requestRef = useRef<AbortController | null>(null);
+	const [lastPayload, setLastPayload] = useState<VerificationPayload | null>(
+		null,
+	);
 
-	const isRunning = events !== null && !failure;
+	const { events, failure, isRunning } = verification;
 
-	async function verify() {
-		const parsed = parseInput(query);
-		if (!parsed.ok) {
-			setFieldError(parsed.error);
-			return;
+	function attachImage(file: File) {
+		const error = validateImage(file);
+		setFieldError(error);
+		setImage(error ? null : file);
+	}
+
+	function removeImage() {
+		setImage(null);
+		if (fileInputRef.current) fileInputRef.current.value = "";
+	}
+
+	function submit() {
+		if (isRunning) return;
+
+		let payload: VerificationPayload;
+		if (image) {
+			payload = { image };
+		} else {
+			const parsed = parseInput(query);
+			if (!parsed.ok) return setFieldError(parsed.error);
+			payload = { query };
 		}
 
 		setFieldError(null);
-		setFailure(null);
-		setEvents([]);
-
-		const request = new AbortController();
-		requestRef.current = request;
-
-		try {
-			const response = await fetch("/api/verify", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ query }),
-				signal: request.signal,
-			});
-
-			if (!response.ok) {
-				setFailure(await response.json());
-				return;
-			}
-
-			for await (const event of readEvents(response)) {
-				if (event.stage === "done") return router.push(`/r/${event.id}`);
-				if (event.stage === "error") return setFailure(event);
-				setEvents((current) => [...(current ?? []), event]);
-			}
-			setFailure({
-				code: "provider",
-				message: "A conexão foi interrompida antes do fim da pesquisa.",
-			});
-		} catch {
-			if (request.signal.aborted) return;
-			setFailure({
-				code: "network",
-				message:
-					"Não foi possível conectar ao servidor. Verifique sua internet.",
-			});
-		}
-	}
-
-	function cancel() {
-		requestRef.current?.abort();
-		setEvents(null);
+		setLastPayload(payload);
+		verification.start(payload);
 	}
 
 	function handleSubmit(event: React.FormEvent) {
 		event.preventDefault();
-		if (!isRunning) verify();
+		submit();
+	}
+
+	function handlePaste(event: React.ClipboardEvent) {
+		const file = event.clipboardData.files[0];
+		if (!file?.type.startsWith("image/")) return;
+		event.preventDefault();
+		attachImage(file);
 	}
 
 	return (
@@ -118,36 +92,77 @@ export function ClaimForm() {
 							className="text-muted-foreground mt-0.5 size-4 shrink-0"
 							aria-hidden
 						/>
-						<textarea
-							id="claim"
-							name="claim"
-							rows={1}
-							value={query}
-							disabled={isRunning}
-							maxLength={1000}
-							onChange={(event) => setQuery(event.target.value)}
-							onKeyDown={(event) => {
-								if (event.key === "Enter" && !event.shiftKey)
-									handleSubmit(event);
-							}}
-							placeholder="Cole o link da notícia ou digite a alegação…"
-							aria-invalid={fieldError ? true : undefined}
-							aria-describedby={fieldError ? "claim-error" : undefined}
-							className="placeholder:text-muted-foreground field-sizing-content max-h-48 min-h-6 w-full resize-none bg-transparent text-base outline-none disabled:opacity-60"
-						/>
+						{image ? (
+							<div className="bg-muted flex min-w-0 items-center gap-2 rounded-md py-0.5 pr-1 pl-2 text-sm">
+								<span className="truncate">{image.name}</span>
+								<button
+									type="button"
+									onClick={removeImage}
+									disabled={isRunning}
+									className="hover:bg-background focus-visible:outline-ring rounded-sm p-0.5 focus-visible:outline-2"
+								>
+									<X className="size-3.5" aria-hidden />
+									<span className="sr-only">Remover imagem</span>
+								</button>
+							</div>
+						) : (
+							<textarea
+								id="claim"
+								name="claim"
+								rows={1}
+								value={query}
+								disabled={isRunning}
+								maxLength={1000}
+								onChange={(event) => setQuery(event.target.value)}
+								onPaste={handlePaste}
+								onKeyDown={(event) => {
+									if (event.key === "Enter" && !event.shiftKey)
+										handleSubmit(event);
+								}}
+								placeholder="Cole o link, o texto ou o print da mensagem…"
+								aria-invalid={fieldError ? true : undefined}
+								aria-describedby={fieldError ? "claim-error" : undefined}
+								className="placeholder:text-muted-foreground field-sizing-content max-h-48 min-h-6 w-full resize-none bg-transparent text-base outline-none disabled:opacity-60"
+							/>
+						)}
 					</div>
-					<Button
-						type="submit"
-						size="lg"
-						disabled={isRunning}
-						className="h-11 rounded-lg px-5 text-sm"
-					>
-						{isRunning ? (
-							<Loader2 className="animate-spin" aria-hidden />
-						) : null}
-						{isRunning ? "Verificando" : "Verificar"}
-						{isRunning ? null : <ArrowRight aria-hidden />}
-					</Button>
+					<div className="flex gap-2">
+						<input
+							ref={fileInputRef}
+							type="file"
+							accept={acceptedImageTypes.join(",")}
+							className="sr-only"
+							tabIndex={-1}
+							aria-hidden
+							onChange={(event) => {
+								const file = event.target.files?.[0];
+								if (file) attachImage(file);
+							}}
+						/>
+						<Button
+							type="button"
+							variant="outline"
+							size="icon"
+							disabled={isRunning}
+							onClick={() => fileInputRef.current?.click()}
+							className="size-11 rounded-lg"
+						>
+							<ImagePlus className="size-4" aria-hidden />
+							<span className="sr-only">Enviar print ou imagem</span>
+						</Button>
+						<Button
+							type="submit"
+							size="lg"
+							disabled={isRunning}
+							className="h-11 flex-1 rounded-lg px-5 text-sm sm:flex-none"
+						>
+							{isRunning ? (
+								<Loader2 className="animate-spin" aria-hidden />
+							) : null}
+							{isRunning ? "Verificando" : "Verificar"}
+							{isRunning ? null : <ArrowRight aria-hidden />}
+						</Button>
+					</div>
 				</div>
 				{fieldError ? (
 					<p id="claim-error" className="text-destructive mt-2 text-sm">
@@ -163,7 +178,10 @@ export function ClaimForm() {
 						<button
 							key={claim}
 							type="button"
-							onClick={() => setQuery(claim)}
+							onClick={() => {
+								removeImage();
+								setQuery(claim);
+							}}
 							className="bg-card hover:border-foreground/30 hover:text-foreground focus-visible:outline-ring rounded-full border px-3 py-1 focus-visible:outline-2"
 						>
 							“{claim}”
@@ -172,61 +190,16 @@ export function ClaimForm() {
 				</div>
 			) : null}
 
-			{isRunning ? (
-				<ResearchProgress
-					events={events}
-					isUrl={/^https?:\/\//i.test(query.trim())}
-					onCancel={cancel}
-				/>
+			{isRunning && events ? (
+				<ResearchProgress events={events} onCancel={verification.cancel} />
 			) : null}
 
-			{failure ? <FailureAlert failure={failure} onRetry={verify} /> : null}
+			{failure && lastPayload ? (
+				<VerificationFailure
+					failure={failure}
+					onRetry={() => verification.start(lastPayload)}
+				/>
+			) : null}
 		</div>
-	);
-}
-
-function FailureAlert({
-	failure,
-	onRetry,
-}: {
-	failure: Failure;
-	onRetry: () => void;
-}) {
-	const ref = useFocusOnMount<HTMLDivElement>();
-
-	if (failure.code === "demo_mode") {
-		return (
-			<Alert ref={ref} tabIndex={-1} className="p-4 text-sm outline-none">
-				<AlertCircle aria-hidden />
-				<AlertTitle>Modo demonstração</AlertTitle>
-				<AlertDescription className="text-sm">
-					A pesquisa ao vivo não está configurada neste ambiente, então nenhuma
-					verificação real foi feita. Veja os{" "}
-					<Link href="/#exemplos">relatórios de exemplo</Link> para conhecer o
-					formato.
-				</AlertDescription>
-			</Alert>
-		);
-	}
-
-	const canRetry = failure.code !== "invalid_input";
-	return (
-		<Alert
-			ref={ref}
-			tabIndex={-1}
-			variant="destructive"
-			className="p-4 text-sm outline-none"
-		>
-			<AlertCircle aria-hidden />
-			<AlertTitle>Não foi possível concluir a verificação</AlertTitle>
-			<AlertDescription className="space-y-3 text-sm">
-				<p>{failure.message}</p>
-				{canRetry ? (
-					<Button variant="outline" size="sm" onClick={onRetry}>
-						Tentar novamente
-					</Button>
-				) : null}
-			</AlertDescription>
-		</Alert>
 	);
 }

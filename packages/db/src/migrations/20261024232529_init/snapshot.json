@@ -1,0 +1,217 @@
+{
+	"version": "7",
+	"dialect": "sqlite",
+	"id": "31355025-b22d-437a-9348-25476d5ea1d6",
+	"prevIds": ["00000000-0000-0000-0000-000000000000"],
+	"ddl": [
+		{
+			"name": "feedback",
+			"entityType": "tables"
+		},
+		{
+			"name": "report_groups",
+			"entityType": "tables"
+		},
+		{
+			"name": "reports",
+			"entityType": "tables"
+		},
+		{
+			"table": "feedback",
+			"name": "id",
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "feedback",
+			"name": "reportId",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "feedback",
+			"name": "kind",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "feedback",
+			"name": "comment",
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "feedback",
+			"name": "createdAt",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "report_groups",
+			"name": "id",
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "report_groups",
+			"name": "reportIds",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "report_groups",
+			"name": "createdAt",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "reports",
+			"name": "id",
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "reports",
+			"name": "claim",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "reports",
+			"name": "claimHash",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "reports",
+			"name": "inputUrl",
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "reports",
+			"name": "content",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "reports",
+			"name": "deleteTokenHash",
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "reports",
+			"name": "createdAt",
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"entityType": "columns"
+		},
+		{
+			"table": "reports",
+			"name": "reports_claim_hash_idx",
+			"columns": [
+				{
+					"value": "claimHash",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"entityType": "indexes"
+		},
+		{
+			"table": "feedback",
+			"name": "fk_feedback_reportId_reports_id_fk",
+			"columns": ["reportId"],
+			"tableTo": "reports",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"nameExplicit": false,
+			"entityType": "fks"
+		},
+		{
+			"table": "feedback",
+			"name": "feedback_pk",
+			"columns": ["id"],
+			"nameExplicit": false,
+			"entityType": "pks"
+		},
+		{
+			"table": "report_groups",
+			"name": "report_groups_pk",
+			"columns": ["id"],
+			"nameExplicit": false,
+			"entityType": "pks"
+		},
+		{
+			"table": "reports",
+			"name": "reports_pk",
+			"columns": ["id"],
+			"nameExplicit": false,
+			"entityType": "pks"
+		}
+	],
+	"renames": []
+}

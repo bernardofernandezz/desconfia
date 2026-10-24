@@ -1,5 +1,5 @@
 import { ENV } from "@/env.server";
-import type { Source } from "../report";
+import type { Source, SourceCandidate } from "../report";
 import { ResearchError } from "./errors";
 
 const API_URL = "https://api.tavily.com";
@@ -96,7 +96,7 @@ function search(query: string, signal: AbortSignal, includeDomains?: string[]) {
 export async function findSources(
 	claim: string,
 	signal: AbortSignal,
-): Promise<Source[]> {
+): Promise<SourceCandidate[]> {
 	const [general, official] = await Promise.all([
 		search(claim, signal),
 		search(claim, signal, primaryDomains),
@@ -108,10 +108,9 @@ export async function findSources(
 		if (usable && !unique.has(result.url)) unique.set(result.url, result);
 	}
 
-	return [...unique.values()].slice(0, MAX_SOURCES).map((result, index) => {
+	return [...unique.values()].slice(0, MAX_SOURCES).map((result) => {
 		const domain = new URL(result.url).hostname.replace(/^www\./, "");
 		return {
-			id: `S${index + 1}`,
 			url: result.url,
 			title: result.title || domain,
 			domain,

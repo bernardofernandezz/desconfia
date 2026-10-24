@@ -4,7 +4,8 @@ export type ResearchErrorCode =
 	| "timeout"
 	| "rate_limit"
 	| "provider"
-	| "no_content";
+	| "no_content"
+	| "not_found";
 
 export class ResearchError extends Error {
 	constructor(

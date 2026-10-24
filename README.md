@@ -23,7 +23,7 @@ Texto, link ou print → Alegações (até 3) → Cache de 7 dias → Pesquisa (
 
 ```bash
 bun install
-bun run db:push      # cria as tabelas em ./local.db
+bun run db:migrate   # cria as tabelas em ./local.db
 bun run dev          # http://localhost:3001
 ```
 
@@ -44,15 +44,30 @@ O schema está em `apps/web/.env.schema`. Copie `apps/web/.env.example` para `ap
 ## Scripts
 
 ```bash
-bun run check-types   # next typegen + tsc
-bun run check         # biome (lint + format)
-bun run --cwd apps/web test   # testes de validação e segurança de URL
+bun run check-types              # next typegen + tsc
+bun run check                    # biome (lint + format)
+bun run --cwd apps/web test      # testes unitários e de integração (SQLite temporário, provedores mockados)
 bun run build
+bun run --cwd apps/web test:e2e  # Playwright no build de produção, em modo demonstração
+bun run --cwd apps/web eval      # avaliação com provedores reais (exige as chaves)
 ```
+
+O CI (`.github/workflows/ci.yml`) roda lint, tipos, testes, migrations, build e E2E em cada PR. Para o E2E local, rode `bun run build` antes; com o Chromium do sistema, use `CHROMIUM_PATH=/usr/bin/chromium`.
+
+### Avaliação
+
+`apps/web/evals/claims.json` tem 20 alegações cívicas com veredito conhecido (mandatos, idades mínimas, datas oficiais). `bun run --cwd apps/web eval` pesquisa cada uma com os provedores reais e mostra acertos, inconclusivos e vereditos invertidos. O script falha se algum veredito sair invertido ou se houver erro: um "inconclusivo" é aceitável, afirmar o contrário não. Rode antes de trocar o prompt ou o modelo.
+
+## Deploy (Vercel + Turso)
+
+1. Crie um banco no [Turso](https://turso.tech) e gere um token: `turso db create desconfia` e `turso db tokens create desconfia`.
+2. Aplique as migrations: `DATABASE_URL=libsql://… DATABASE_AUTH_TOKEN=… bun run db:migrate`.
+3. Na Vercel, importe o repositório com **Root Directory** `apps/web` e configure `DATABASE_URL`, `DATABASE_AUTH_TOKEN`, `TAVILY_API_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY` e, se quiser, `GOOGLE_FACT_CHECK_API_KEY`.
+4. As URLs absolutas das prévias de link são resolvidas automaticamente na Vercel. Em outro host, defina `SITE_URL`.
+
+O limite de requisições fica na tabela `rate_limit_hits` (IP guardado só como hash), então funciona com várias instâncias. Cada verificação gera uma linha JSON `{"event":"verification",…}` nos logs com resultado, tipo de entrada, duração, número de alegações, reaproveitadas e vereditos, nunca com o texto da alegação nem o IP.
 
 ## Limitações conhecidas
 
-- O rate limit fica em memória e vale por instância. Com mais de uma instância, troque por um armazenamento compartilhado.
 - O plano gratuito do Gemini tem limites baixos de requisições. Quando o limite estoura, o usuário vê uma mensagem com a opção de tentar novamente.
-- Ainda não há envio de imagem/print.
 # desconfia

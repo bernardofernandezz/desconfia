@@ -1,4 +1,4 @@
-import { index, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const reports = sqliteTable(
 	"reports",
@@ -29,3 +29,15 @@ export const feedback = sqliteTable("feedback", {
 	comment: text(),
 	createdAt: text().notNull(),
 });
+
+export const rateLimitHits = sqliteTable(
+	"rate_limit_hits",
+	{
+		id: integer().primaryKey({ autoIncrement: true }),
+		keyHash: text().notNull(),
+		createdAt: integer().notNull(),
+	},
+	(table) => [
+		index("rate_limit_hits_key_idx").on(table.keyHash, table.createdAt),
+	],
+);

@@ -1,1 +1,5 @@
 env = false
+
+[test]
+root = "./src"
+preload = ["./src/test/setup-db.ts"]

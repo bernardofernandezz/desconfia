@@ -1,3 +1,4 @@
+import type { Verdict } from "./report";
 import {
 	createDeleteToken,
 	findRecentReportId,
@@ -100,6 +101,7 @@ export async function runVerification(
 	const deleteToken = createDeleteToken();
 	const reportIds: string[] = [];
 	const created: string[] = [];
+	const verdicts: Verdict[] = [];
 
 	for (const [index, claim] of claims.entries()) {
 		const cachedId = useCache ? await findRecentReportId(claim) : null;
@@ -115,6 +117,7 @@ export async function runVerification(
 		const id = await saveReport(report, deleteToken);
 		reportIds.push(id);
 		created.push(id);
+		verdicts.push(report.verdict);
 	}
 
 	const href =
@@ -122,4 +125,10 @@ export async function runVerification(
 			? `/r/${reportIds[0]}`
 			: `/g/${await saveGroup(reportIds)}`;
 	emit({ stage: "done", href, created, deleteToken });
+
+	return {
+		claims: claims.length,
+		reused: claims.length - created.length,
+		verdicts,
+	};
 }

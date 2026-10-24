@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: file:../../local.db
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+
+      - run: bun install --frozen-lockfile
+
+      - name: Lint and format
+        run: bunx biome ci apps packages
+
+      - name: Type check
+        run: bun run check-types
+
+      - name: Unit and integration tests
+        run: bun run --cwd apps/web test
+
+      - name: Apply migrations
+        run: bun run --cwd packages/db db:migrate
+
+      - name: Build
+        run: bun run build
+
+      - name: Install Playwright Chromium
+        run: bunx playwright install --with-deps chromium
+        working-directory: apps/web
+
+      - name: End-to-end tests
+        run: bun run test:e2e
+        working-directory: apps/web

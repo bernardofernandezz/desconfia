@@ -1,19 +1,5 @@
-import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
-import { mkdtempSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { createDb } from "@desconfia/db";
-import { migrate } from "drizzle-orm/libsql/migrator";
+import { beforeEach, describe, expect, mock, test } from "bun:test";
 import type { Draft } from "./report";
-
-const directory = mkdtempSync(join(tmpdir(), "desconfia-"));
-const db = createDb({ DATABASE_URL: `file:${join(directory, "test.db")}` });
-await migrate(db, {
-	migrationsFolder: join(
-		import.meta.dir,
-		"../../../../packages/db/src/migrations",
-	),
-});
 
 const calls = { search: 0, extract: 0 };
 const supportedDraft: Draft = {
@@ -33,7 +19,6 @@ const supportedDraft: Draft = {
 	openQuestions: [],
 };
 
-mock.module("@/services", () => ({ db }));
 // Module mocks are process-wide in bun, so keep the real exports other test files rely on.
 const factCheck = await import("./research/factcheck");
 mock.module("./research/factcheck", () => ({
@@ -86,8 +71,6 @@ beforeEach(() => {
 	calls.search = 0;
 	calls.extract = 0;
 });
-
-afterAll(() => rmSync(directory, { recursive: true, force: true }));
 
 describe("runVerification", () => {
 	test("researches a short claim and stores a single report", async () => {

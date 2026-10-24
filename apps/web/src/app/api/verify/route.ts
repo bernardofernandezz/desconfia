@@ -1,5 +1,5 @@
 import { isLiveResearchEnabled } from "@/lib/providers";
-import { clientIp, createRateLimiter } from "@/lib/rate-limit";
+import { isRateLimited } from "@/lib/rate-limit";
 import { toResearchError } from "@/lib/research/errors";
 import { MAX_IMAGE_BYTES, parseImage, parseInput } from "@/lib/research/input";
 import {
@@ -11,7 +11,6 @@ import {
 export const maxDuration = 300;
 
 const VERIFICATION_TIMEOUT_MS = 240_000;
-const isRateLimited = createRateLimiter({ max: 5, windowMs: 10 * 60_000 });
 
 type ParsedRequest =
 	| { ok: true; request: VerificationRequest }
@@ -74,7 +73,7 @@ export async function POST(request: Request) {
 	if (!parsed.ok)
 		return jsonError(parsed.status, "invalid_input", parsed.error);
 
-	if (isRateLimited(clientIp(request))) {
+	if (await isRateLimited(request, "verify")) {
 		return jsonError(
 			429,
 			"rate_limit",

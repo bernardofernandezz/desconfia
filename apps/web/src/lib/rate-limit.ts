@@ -1,22 +1,36 @@
-// shortcut: in-memory, per server instance; move to a shared store (e.g. Redis) before running multiple instances
-export function createRateLimiter({
-	max,
-	windowMs,
-}: {
-	max: number;
-	windowMs: number;
-}) {
-	const requests = new Map<string, number[]>();
+import { createHash } from "node:crypto";
+import { rateLimitHits } from "@desconfia/db/schema/index";
+import { and, count, eq, lt } from "drizzle-orm";
+import { db } from "@/services";
 
-	return function isLimited(key: string) {
-		const now = Date.now();
-		const recent = (requests.get(key) ?? []).filter(
-			(time) => now - time < windowMs,
-		);
-		requests.set(key, [...recent, now]);
-		return recent.length >= max;
-	};
-}
+const limits = {
+	verify: { max: 5, windowMs: 10 * 60_000 },
+	feedback: { max: 10, windowMs: 60 * 60_000 },
+} as const;
 
-export const clientIp = (request: Request) =>
+export type RateLimitBucket = keyof typeof limits;
+
+const clientIp = (request: Request) =>
 	request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
+
+// Stored in the database so the limit holds across server instances; IPs are kept only as hashes.
+export async function isRateLimited(request: Request, bucket: RateLimitBucket) {
+	const { max, windowMs } = limits[bucket];
+	const keyHash = createHash("sha256")
+		.update(`${bucket}:${clientIp(request)}`)
+		.digest("hex");
+	const now = Date.now();
+	const ownHits = eq(rateLimitHits.keyHash, keyHash);
+
+	await db
+		.delete(rateLimitHits)
+		.where(and(ownHits, lt(rateLimitHits.createdAt, now - windowMs)));
+	const [hits] = await db
+		.select({ total: count() })
+		.from(rateLimitHits)
+		.where(ownHits);
+	if ((hits?.total ?? 0) >= max) return true;
+
+	await db.insert(rateLimitHits).values({ keyHash, createdAt: now });
+	return false;
+}

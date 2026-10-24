@@ -27,7 +27,7 @@ bun run dev          # http://localhost:3001
 
 ### Variáveis de ambiente (`apps/web/.env`)
 
-O schema está em `apps/web/.env.schema`. Coloque os valores em `apps/web/.env`, que não é versionado.
+O schema está em `apps/web/.env.schema`. Copie `apps/web/.env.example` para `apps/web/.env` e preencha as chaves. O `.env` não é versionado.
 
 | Variável | Obrigatória | Descrição |
 | --- | --- | --- |

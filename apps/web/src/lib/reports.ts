@@ -1,6 +1,6 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { feedback, reportGroups, reports } from "@desconfia/db/schema/index";
-import { and, desc, eq, gt } from "drizzle-orm";
+import { and, desc, eq, gt, isNotNull } from "drizzle-orm";
 import { customAlphabet, nanoid } from "nanoid";
 import { db } from "@/services";
 import type { Report } from "./report";
@@ -112,4 +112,31 @@ export async function saveFeedback(
 		comment,
 		createdAt: new Date().toISOString(),
 	});
+}
+
+export async function setFeatured(id: string, featured: boolean) {
+	const updated = await db
+		.update(reports)
+		.set({ featuredAt: featured ? new Date().toISOString() : null })
+		.where(eq(reports.id, id))
+		.returning({ id: reports.id });
+	return updated.length > 0;
+}
+
+export async function isFeatured(id: string) {
+	const [row] = await db
+		.select({ id: reports.id })
+		.from(reports)
+		.where(and(eq(reports.id, id), isNotNull(reports.featuredAt)))
+		.limit(1);
+	return Boolean(row);
+}
+
+export async function getFeaturedReports() {
+	const rows = await db
+		.select({ id: reports.id, content: reports.content })
+		.from(reports)
+		.where(isNotNull(reports.featuredAt))
+		.orderBy(desc(reports.featuredAt));
+	return rows.map((row) => ({ id: row.id, report: row.content as Report }));
 }

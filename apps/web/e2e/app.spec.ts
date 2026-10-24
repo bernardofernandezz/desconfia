@@ -102,6 +102,19 @@ test("prefills the claim shared by the browser extension", async ({ page }) => {
 	);
 });
 
+test("shows the featured page even before any pick", async ({ page }) => {
+	await page.goto("/destaques");
+	await expect(
+		page.getByRole("heading", { name: "Checagens em destaque" }),
+	).toBeVisible();
+});
+
+test("lists only public pages in the sitemap", async ({ request }) => {
+	const sitemap = await (await request.get("/sitemap.xml")).text();
+	expect(sitemap).toContain("/exemplos/data-das-eleicoes");
+	expect(sitemap).toContain("/destaques");
+});
+
 test("keeps the WhatsApp webhook closed when the bot is not configured", async ({
 	request,
 }) => {

@@ -10,7 +10,8 @@
 		"env:generate": "varlock codegen",
 		"test": "bun test",
 		"eval": "bun scripts/eval.ts",
-		"test:e2e": "playwright test"
+		"test:e2e": "playwright test",
+		"feature": "bun scripts/feature.ts"
 	},
 	"dependencies": {
 		"@ai-sdk/google": "^4.0.105",

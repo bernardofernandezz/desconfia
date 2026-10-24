@@ -9,9 +9,13 @@ export const reports = sqliteTable(
 		inputUrl: text(),
 		content: text({ mode: "json" }).notNull(),
 		deleteTokenHash: text(),
+		featuredAt: text(),
 		createdAt: text().notNull(),
 	},
-	(table) => [index("reports_claim_hash_idx").on(table.claimHash)],
+	(table) => [
+		index("reports_claim_hash_idx").on(table.claimHash),
+		index("reports_featured_idx").on(table.featuredAt),
+	],
 );
 
 export const reportGroups = sqliteTable("report_groups", {

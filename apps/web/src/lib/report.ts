@@ -32,7 +32,7 @@ export type Source = {
 	url: string;
 	title: string;
 	domain: string;
-	kind: "primary" | "press" | "other";
+	kind: "primary" | "factcheck" | "press" | "other";
 	excerpt: string;
 };
 
@@ -60,6 +60,7 @@ export const verdictLabels: Record<Verdict, string> = {
 
 export const sourceKindLabels: Record<Source["kind"], string> = {
 	primary: "Fonte oficial",
+	factcheck: "Checagem profissional",
 	press: "Imprensa",
 	other: "Outra fonte",
 };

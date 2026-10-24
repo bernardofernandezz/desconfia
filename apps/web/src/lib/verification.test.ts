@@ -34,6 +34,12 @@ const supportedDraft: Draft = {
 };
 
 mock.module("@/services", () => ({ db }));
+// Module mocks are process-wide in bun, so keep the real exports other test files rely on.
+const factCheck = await import("./research/factcheck");
+mock.module("./research/factcheck", () => ({
+	...factCheck,
+	findFactChecks: async () => [],
+}));
 mock.module("./research/tavily", () => ({
 	extractArticle: async () => "texto do artigo",
 	findSources: async () => {

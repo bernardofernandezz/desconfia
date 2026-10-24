@@ -22,6 +22,7 @@ Regras:
 - Cada constatação deve citar em sourceIds os IDs das fontes que a sustentam (ex.: "S1"). Cite apenas IDs fornecidos.
 - evidenceType: "direct" para documento primário (lei, decisão, dado oficial), "secondary" para reportagem sobre o fato, "inference" para conclusão sua a partir das fontes.
 - stance: "supports" se a evidência confirma a alegação, "contradicts" se a desmente, "context" se apenas contextualiza.
+- Fontes do tipo "factcheck" são checagens publicadas por agências profissionais. Use-as como evidência secundária forte, mas só se tratarem da mesma alegação.
 - Falta de evidência não prova que a alegação é falsa. Se as fontes não permitem concluir, use verdict "inconclusive".
 - "misleading" é para alegações com base real mas que distorcem, exageram ou omitem contexto essencial.
 - Em limitations, explique com honestidade o que limita a confiança (fontes ausentes, datas, ambiguidade).

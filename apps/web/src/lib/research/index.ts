@@ -1,4 +1,5 @@
 import type { Report, Source } from "../report";
+import { findFactChecks } from "./factcheck";
 import { synthesize } from "./synthesize";
 import { findSources } from "./tavily";
 import { finalizeReport, inconclusiveDraft } from "./validate";
@@ -22,8 +23,11 @@ export async function researchClaim(
 	onStage: (stage: ClaimStage) => void,
 ): Promise<Report> {
 	onStage({ stage: "searching" });
-	const webSources = await findSources(claim, signal);
-	const found: Source[] = webSources
+	const [factChecks, webSources] = await Promise.all([
+		findFactChecks(claim, signal),
+		findSources(claim, signal),
+	]);
+	const found: Source[] = [...factChecks, ...webSources]
 		.slice(0, MAX_SOURCES)
 		.map((source, index) => ({ ...source, id: `S${index + 1}` }));
 	onStage({ stage: "sources", count: found.length });

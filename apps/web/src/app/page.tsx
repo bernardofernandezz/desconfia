@@ -9,6 +9,7 @@ import {
 import Link from "next/link";
 import { ClaimForm } from "@/components/claim-form";
 import { ExampleCard } from "@/components/example-card";
+import { RecentReports } from "@/components/recent-reports";
 import { ReportPreview } from "@/components/report-preview";
 import { examples } from "@/lib/examples";
 
@@ -89,6 +90,7 @@ export default function Home() {
 						</p>
 					</div>
 					<ClaimForm />
+					<RecentReports />
 				</div>
 				{preview ? (
 					<div className="hidden px-8 lg:block">

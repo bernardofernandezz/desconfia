@@ -1,32 +1,58 @@
 import { isLiveResearchEnabled } from "@/lib/providers";
-import { saveReport } from "@/lib/reports";
-import { runResearch, type Stage } from "@/lib/research";
+import { clientIp, createRateLimiter } from "@/lib/rate-limit";
 import { toResearchError } from "@/lib/research/errors";
-import { parseInput } from "@/lib/research/input";
+import { MAX_IMAGE_BYTES, parseImage, parseInput } from "@/lib/research/input";
+import {
+	runVerification,
+	type VerificationEvent,
+	type VerificationRequest,
+} from "@/lib/verification";
 
-export const maxDuration = 120;
+export const maxDuration = 300;
 
-export type VerifyEvent =
-	| Stage
-	| { stage: "done"; id: string }
-	| { stage: "error"; code: string; message: string };
+const VERIFICATION_TIMEOUT_MS = 240_000;
+const isRateLimited = createRateLimiter({ max: 5, windowMs: 10 * 60_000 });
 
-const RESEARCH_TIMEOUT_MS = 100_000;
-const RATE_LIMIT = { max: 5, windowMs: 10 * 60_000 };
-// shortcut: in-memory, per server instance; move to a shared store (e.g. Redis) before running multiple instances
-const requestLog = new Map<string, number[]>();
+type ParsedRequest =
+	| { ok: true; request: VerificationRequest }
+	| { ok: false; status: number; error: string };
 
-function isRateLimited(ip: string) {
-	const now = Date.now();
-	const recent = (requestLog.get(ip) ?? []).filter(
-		(time) => now - time < RATE_LIMIT.windowMs,
-	);
-	requestLog.set(ip, [...recent, now]);
-	return recent.length >= RATE_LIMIT.max;
+const invalid = (error: string, status = 400): ParsedRequest => ({
+	ok: false,
+	status,
+	error,
+});
+
+async function readImageRequest(request: Request): Promise<ParsedRequest> {
+	const declaredSize = Number(request.headers.get("content-length") ?? 0);
+	if (declaredSize > MAX_IMAGE_BYTES + 64 * 1024)
+		return invalid("A imagem pode ter no máximo 5 MB.", 413);
+
+	const form = await request.formData().catch(() => null);
+	const file = form?.get("image");
+	if (!(file instanceof File)) return invalid("Envie uma imagem.");
+
+	const parsed = parseImage(new Uint8Array(await file.arrayBuffer()));
+	if (!parsed.ok) return invalid(parsed.error);
+	return {
+		ok: true,
+		request: { kind: "new", input: { kind: "image", image: parsed.image } },
+	};
+}
+
+async function readJsonRequest(request: Request): Promise<ParsedRequest> {
+	const body = await request.json().catch(() => null);
+	if (typeof body?.refreshOf === "string") {
+		return { ok: true, request: { kind: "refresh", reportId: body.refreshOf } };
+	}
+
+	const parsed = parseInput(body?.query);
+	if (!parsed.ok) return invalid(parsed.error);
+	return { ok: true, request: { kind: "new", input: parsed.input } };
 }
 
 const jsonError = (status: number, code: string, message: string) =>
-	Response.json({ stage: "error", code, message } satisfies VerifyEvent, {
+	Response.json({ stage: "error", code, message } satisfies VerificationEvent, {
 		status,
 	});
 
@@ -39,13 +65,16 @@ export async function POST(request: Request) {
 		);
 	}
 
-	const body = await request.json().catch(() => null);
-	const parsed = parseInput(body?.query);
-	if (!parsed.ok) return jsonError(400, "invalid_input", parsed.error);
+	const isImage = request.headers
+		.get("content-type")
+		?.startsWith("multipart/form-data");
+	const parsed = isImage
+		? await readImageRequest(request)
+		: await readJsonRequest(request);
+	if (!parsed.ok)
+		return jsonError(parsed.status, "invalid_input", parsed.error);
 
-	const ip =
-		request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
-	if (isRateLimited(ip)) {
+	if (isRateLimited(clientIp(request))) {
 		return jsonError(
 			429,
 			"rate_limit",
@@ -55,17 +84,16 @@ export async function POST(request: Request) {
 
 	const signal = AbortSignal.any([
 		request.signal,
-		AbortSignal.timeout(RESEARCH_TIMEOUT_MS),
+		AbortSignal.timeout(VERIFICATION_TIMEOUT_MS),
 	]);
 	const encoder = new TextEncoder();
 
 	const stream = new ReadableStream({
 		async start(controller) {
-			const send = (event: VerifyEvent) =>
+			const send = (event: VerificationEvent) =>
 				controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
 			try {
-				const report = await runResearch(parsed.input, signal, send);
-				send({ stage: "done", id: await saveReport(report) });
+				await runVerification(parsed.request, signal, send);
 			} catch (error) {
 				const { code, message } = toResearchError(error);
 				console.error(

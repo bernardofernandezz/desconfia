@@ -1,41 +1,38 @@
-import type { Report } from "../report";
-import { ResearchError } from "./errors";
-import type { ResearchInput } from "./input";
-import { extractClaim, synthesize } from "./synthesize";
-import { extractArticle, findSources } from "./tavily";
+import type { Report, Source } from "../report";
+import { findFactChecks } from "./factcheck";
+import { synthesize } from "./synthesize";
+import { findSources } from "./tavily";
 import { finalizeReport, inconclusiveDraft } from "./validate";
 
-export type Stage =
-	| { stage: "reading_url" }
-	| { stage: "searching"; claim: string }
+const MAX_SOURCES = 8;
+
+export type ClaimStage =
+	| { stage: "searching" }
 	| { stage: "sources"; count: number }
 	| { stage: "analyzing" };
 
-export async function runResearch(
-	input: ResearchInput,
-	signal: AbortSignal,
-	onStage: (stage: Stage) => void,
-): Promise<Report> {
-	let claim = input.kind === "text" ? input.claim : "";
-	if (input.kind === "url") {
-		onStage({ stage: "reading_url" });
-		claim = await extractClaim(await extractArticle(input.url, signal), signal);
-		if (!claim)
-			throw new ResearchError(
-				"no_content",
-				"Não encontramos uma alegação verificável nesse link.",
-			);
-	}
+export type ReportOrigin = Pick<
+	Report,
+	"inputUrl" | "fromImage" | "previousId"
+>;
 
-	onStage({ stage: "searching", claim });
-	const found = await findSources(claim, signal);
+export async function researchClaim(
+	claim: string,
+	origin: ReportOrigin,
+	signal: AbortSignal,
+	onStage: (stage: ClaimStage) => void,
+): Promise<Report> {
+	onStage({ stage: "searching" });
+	const [factChecks, webSources] = await Promise.all([
+		findFactChecks(claim, signal),
+		findSources(claim, signal),
+	]);
+	const found: Source[] = [...factChecks, ...webSources]
+		.slice(0, MAX_SOURCES)
+		.map((source, index) => ({ ...source, id: `S${index + 1}` }));
 	onStage({ stage: "sources", count: found.length });
 
-	const base = {
-		claim,
-		inputUrl: input.kind === "url" ? input.url : null,
-		researchedAt: new Date().toISOString(),
-	};
+	const base = { claim, ...origin, researchedAt: new Date().toISOString() };
 	if (found.length === 0) {
 		return {
 			...base,

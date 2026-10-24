@@ -120,6 +120,19 @@ export function ReportView({
 						</a>
 					</p>
 				) : null}
+				{report.fromImage ? (
+					<p className="text-muted-foreground text-sm">
+						Alegação extraída de uma imagem enviada. A imagem não foi guardada.
+					</p>
+				) : null}
+				{report.previousId ? (
+					<p className="text-muted-foreground text-sm">
+						Esta é uma nova pesquisa.{" "}
+						<Link href={`/r/${report.previousId}`} className="underline">
+							Ver a versão anterior
+						</Link>
+					</p>
+				) : null}
 				<div className="space-y-4 border-y py-4">
 					<dl className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
 						<div className="flex items-center gap-2">

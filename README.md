@@ -7,15 +7,17 @@ Criado com [Better-T-Stack](https://better-t-stack.dev): Next.js 16, TypeScript,
 ## Como funciona
 
 ```
-Entrada → Pesquisa (Tavily) → Fontes recuperadas → Síntese (Gemini + Zod) → Validação → SQLite → /r/{id}
+Texto, link ou print → Alegações (até 3) → Cache de 7 dias → Pesquisa (Tavily + checagens) → Síntese (Gemini + Zod) → Validação → SQLite → /r/{id} ou /g/{id}
 ```
 
-- `apps/web/src/lib/research/input.ts`: valida o texto ou o link e bloqueia esquemas que não sejam http(s), localhost, IPs privados e endereços de metadados de nuvem. O servidor nunca acessa diretamente o link enviado; quem lê a página é a Tavily.
-- `tavily.ts`: faz duas buscas em paralelo, uma geral e outra restrita a domínios oficiais (`gov.br`, `leg.br`, `jus.br`…), e guarda até 8 fontes com URL e trecho do conteúdo.
-- `synthesize.ts`: o Gemini recebe as fontes como dados não confiáveis entre tags `<fonte>` e devolve um objeto validado pelo schema Zod (`lib/report.ts`).
-- `validate.ts`: descarta constatações que citam fontes inexistentes, mantém apenas as fontes citadas e força `inconclusive` quando nenhuma evidência sustenta o veredito.
-- `app/api/verify/route.ts`: transmite as etapas reais da pesquisa em NDJSON, aplica timeout de 100 s e limite de 5 verificações a cada 10 min por IP, e devolve mensagens de erro em português.
-- `/r/[id]`: relatório persistido, com id aleatório de 14 caracteres, `noindex` e sem listagem pública.
+- `lib/research/input.ts`: valida texto, link e imagem. Bloqueia esquemas que não sejam http(s), localhost, IPs privados e endereços de metadados de nuvem. Imagens são aceitas só como PNG, JPEG ou WebP (pelos bytes, não pela extensão), até 5 MB, e nunca são guardadas. O servidor nunca acessa diretamente o link enviado; quem lê a página é a Tavily.
+- `lib/verification.ts`: orquestra a verificação. Textos curtos são verificados como digitados; mensagens longas, links e prints passam pelo Gemini para separar até 3 alegações. Alegações iguais (ignorando maiúsculas, espaços e pontuação) verificadas nos últimos 7 dias reaproveitam o relatório. Com mais de uma alegação, o resultado é um grupo em `/g/{id}`.
+- `lib/research/tavily.ts` e `factcheck.ts`: buscas em paralelo, uma geral, outra restrita a domínios oficiais (`gov.br`, `leg.br`, `jus.br`…) e, se houver chave, a Google Fact Check Tools API. Até 8 fontes por alegação, com URL e trecho.
+- `lib/research/synthesize.ts`: o Gemini recebe as fontes como dados não confiáveis entre tags `<fonte>` e devolve um objeto validado pelo schema Zod (`lib/report.ts`).
+- `lib/research/validate.ts`: descarta constatações que citam fontes inexistentes, mantém apenas as fontes citadas e força `inconclusive` quando nenhuma evidência sustenta o veredito.
+- `app/api/verify/route.ts`: transmite as etapas reais em NDJSON, aplica timeout e limite de 5 verificações a cada 10 min por IP.
+- `/r/[id]`: relatório com id aleatório, `noindex` e sem listagem pública. Tem prévia Open Graph, compartilhamento no WhatsApp, "Pesquisar novamente" (cria uma nova versão ligada à anterior), formulário de erro e, para quem criou o relatório, a opção de apagá-lo. O token de exclusão fica só no navegador de quem verificou; o servidor guarda apenas o hash.
+- O histórico "Vistos recentemente" fica no `localStorage` do aparelho.
 
 ## Rodando localmente
 
@@ -35,6 +37,7 @@ O schema está em `apps/web/.env.schema`. Copie `apps/web/.env.example` para `ap
 | `TAVILY_API_KEY` | para pesquisa ao vivo | Chave gratuita em https://app.tavily.com (1000 créditos/mês). |
 | `GOOGLE_GENERATIVE_AI_API_KEY` | para pesquisa ao vivo | Chave gratuita em https://aistudio.google.com/apikey. |
 | `GEMINI_MODEL` | não | Padrão: `gemini-2.5-flash`. |
+| `GOOGLE_FACT_CHECK_API_KEY` | não | Ativa a busca de checagens profissionais (Lupa, Aos Fatos…) via [Google Fact Check Tools API](https://developers.google.com/fact-check/tools/api), gratuita. |
 
 **Sem as duas chaves a aplicação roda em modo demonstração**: tudo funciona, mas ao enviar uma alegação aparece um aviso de que a pesquisa ao vivo está desativada. Os quatro relatórios em `/exemplos/*` foram escritos manualmente, estão identificados como ilustrativos e citam fontes reais (LexML).
 

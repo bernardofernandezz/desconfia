@@ -32,8 +32,13 @@ export default function AboutPage() {
 				<h2 className="text-xl font-semibold tracking-tight">Método</h2>
 				<ol className="list-decimal space-y-2 pl-5">
 					<li>
+						Mensagens longas, links e prints são lidos primeiro para separar até
+						três alegações verificáveis. Cada uma é pesquisada separadamente.
+					</li>
+					<li>
 						Pesquisamos a alegação na web, com uma busca dedicada a portais
-						oficiais (gov.br, leg.br, jus.br).
+						oficiais (gov.br, leg.br, jus.br), e consultamos checagens já
+						publicadas por agências profissionais.
 					</li>
 					<li>
 						Guardamos apenas fontes que foram de fato recuperadas, com link e
@@ -85,6 +90,15 @@ export default function AboutPage() {
 					<li>
 						Os relatórios não são listados publicamente nem indexados por
 						buscadores. Só quem tem o link consegue abrir.
+					</li>
+					<li>
+						Imagens enviadas são lidas e descartadas, nunca guardadas. Quem fez
+						a verificação pode apagar o relatório a partir do mesmo aparelho.
+					</li>
+					<li>
+						Alegações idênticas verificadas nos últimos 7 dias reaproveitam o
+						relatório existente. Use “Pesquisar novamente” para uma pesquisa
+						nova.
 					</li>
 				</ul>
 			</section>

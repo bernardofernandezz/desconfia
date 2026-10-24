@@ -1,0 +1,9 @@
+{
+	"manifest_version": 3,
+	"name": "Desconfia — verificar trecho",
+	"version": "1.0.0",
+	"description": "Selecione um texto em qualquer página e verifique a alegação no Desconfia.",
+	"permissions": ["contextMenus", "storage"],
+	"background": { "service_worker": "background.js", "type": "module" },
+	"options_ui": { "page": "options.html", "open_in_tab": false }
+}

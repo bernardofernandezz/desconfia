@@ -95,6 +95,13 @@ test("navigates with the mobile menu", async ({ page, isMobile }) => {
 	await expect(page).toHaveURL(/\/sobre$/);
 });
 
+test("prefills the claim shared by the browser extension", async ({ page }) => {
+	await page.goto("/?q=O%20governo%20criou%20um%20imposto%20sobre%20o%20PIX");
+	await expect(claimField(page)).toHaveValue(
+		"O governo criou um imposto sobre o PIX",
+	);
+});
+
 test("keeps the WhatsApp webhook closed when the bot is not configured", async ({
 	request,
 }) => {

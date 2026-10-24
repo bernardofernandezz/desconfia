@@ -2,7 +2,7 @@
 
 import { Button } from "@desconfia/ui/components/button";
 import { ArrowRight, ImagePlus, Link2, Loader2, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
 	useVerification,
 	type VerificationPayload,
@@ -39,6 +39,12 @@ export function ClaimForm() {
 	);
 
 	const { events, failure, isRunning } = verification;
+
+	// The browser extension opens /?q=<selected text>; the user still reviews it before verifying.
+	useEffect(() => {
+		const shared = new URLSearchParams(window.location.search).get("q");
+		if (shared) setQuery(shared.slice(0, 1000));
+	}, []);
 
 	function attachImage(file: File) {
 		const error = validateImage(file);

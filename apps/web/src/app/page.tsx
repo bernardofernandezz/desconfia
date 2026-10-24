@@ -8,10 +8,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { ClaimForm } from "@/components/claim-form";
-import { ExampleCard } from "@/components/example-card";
 import { RecentReports } from "@/components/recent-reports";
+import { ReportCard } from "@/components/report-card";
 import { ReportPreview } from "@/components/report-preview";
 import { examples } from "@/lib/examples";
+import { claimTransitionName } from "@/lib/report";
 
 const principles = [
 	{
@@ -187,10 +188,11 @@ export default function Home() {
 				</div>
 				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 					{examples.map((example) => (
-						<ExampleCard
+						<ReportCard
 							key={example.slug}
-							slug={example.slug}
+							href={`/exemplos/${example.slug}`}
 							report={example.report}
+							transitionName={claimTransitionName(example.slug)}
 						/>
 					))}
 				</div>

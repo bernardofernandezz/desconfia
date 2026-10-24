@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="pt-BR">
+	<head>
+		<meta charset="utf-8" />
+		<title>Desconfia — opções</title>
+		<style>
+			body { font: 14px system-ui, sans-serif; margin: 16px; min-width: 320px; }
+			label { display: block; margin-bottom: 6px; font-weight: 600; }
+			input { width: 100%; box-sizing: border-box; padding: 6px 8px; }
+			button { margin-top: 10px; padding: 6px 12px; }
+			p { color: #555; }
+		</style>
+	</head>
+	<body>
+		<form id="options">
+			<label for="site-url">Endereço do Desconfia</label>
+			<input id="site-url" type="url" required placeholder="https://desconfia.example" />
+			<button type="submit">Salvar</button>
+			<p id="status" role="status"></p>
+		</form>
+		<script type="module" src="options.js"></script>
+	</body>
+</html>

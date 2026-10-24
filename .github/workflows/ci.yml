@@ -15,7 +15,7 @@ jobs:
     env:
       DATABASE_URL: file:../../local.db
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -31,6 +31,9 @@ jobs:
 
       - name: Unit and integration tests
         run: bun run --cwd apps/web test
+
+      - name: Extension tests
+        run: bun test ./extension
 
       - name: Apply migrations
         run: bun run --cwd packages/db db:migrate

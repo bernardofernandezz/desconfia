@@ -1,5 +1,5 @@
 import { isLiveResearchEnabled } from "@/lib/providers";
-import { isRateLimited } from "@/lib/rate-limit";
+import { clientIp, isRateLimited } from "@/lib/rate-limit";
 import { toResearchError } from "@/lib/research/errors";
 import { MAX_IMAGE_BYTES, parseImage, parseInput } from "@/lib/research/input";
 import {
@@ -77,7 +77,7 @@ export async function POST(request: Request) {
 	if (!parsed.ok)
 		return jsonError(parsed.status, "invalid_input", parsed.error);
 
-	if (await isRateLimited(request, "verify")) {
+	if (await isRateLimited("verify", clientIp(request))) {
 		return jsonError(
 			429,
 			"rate_limit",
@@ -101,12 +101,18 @@ export async function POST(request: Request) {
 					? "refresh"
 					: parsed.request.input.kind;
 			try {
-				const summary = await runVerification(parsed.request, signal, send);
+				const { claims, reused, verdicts } = await runVerification(
+					parsed.request,
+					signal,
+					send,
+				);
 				logVerification({
 					outcome: "done",
 					kind,
 					durationMs: Date.now() - startedAt,
-					...summary,
+					claims,
+					reused,
+					verdicts,
 				});
 			} catch (error) {
 				const { code, message } = toResearchError(error);

@@ -16,6 +16,9 @@ export function SiteFooter() {
 					<Link href="/#exemplos" className="hover:text-foreground">
 						Exemplos
 					</Link>
+					<Link href="/destaques" className="hover:text-foreground">
+						Destaques
+					</Link>
 				</nav>
 			</div>
 		</footer>

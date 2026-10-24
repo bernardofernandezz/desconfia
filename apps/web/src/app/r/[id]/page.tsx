@@ -4,20 +4,23 @@ import { FeedbackForm } from "@/components/feedback-form";
 import { ReportToolbar } from "@/components/report-toolbar";
 import { ReportView } from "@/components/report-view";
 import { verdictLabels } from "@/lib/report";
-import { getReport } from "@/lib/reports";
+import { getReport, isFeatured } from "@/lib/reports";
 
 export async function generateMetadata(
 	props: PageProps<"/r/[id]">,
 ): Promise<Metadata> {
-	const report = await getReport((await props.params).id);
+	const { id } = await props.params;
+	const report = await getReport(id);
 	if (!report) return { title: "Relatório não encontrado" };
+	// Only reports picked for /destaques may be indexed; everything else stays link-only.
+	const indexable = await isFeatured(id);
 
 	const title = `${verdictLabels[report.verdict]}: “${report.claim}”`;
 	return {
 		title,
 		description: report.summary,
 		openGraph: { title, description: report.summary },
-		robots: { index: false, follow: false },
+		robots: indexable ? undefined : { index: false, follow: false },
 	};
 }
 

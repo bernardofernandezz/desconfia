@@ -94,3 +94,30 @@ test("navigates with the mobile menu", async ({ page, isMobile }) => {
 	await page.getByRole("menuitem", { name: "Sobre" }).click();
 	await expect(page).toHaveURL(/\/sobre$/);
 });
+
+test("prefills the claim shared by the browser extension", async ({ page }) => {
+	await page.goto("/?q=O%20governo%20criou%20um%20imposto%20sobre%20o%20PIX");
+	await expect(claimField(page)).toHaveValue(
+		"O governo criou um imposto sobre o PIX",
+	);
+});
+
+test("shows the featured page even before any pick", async ({ page }) => {
+	await page.goto("/destaques");
+	await expect(
+		page.getByRole("heading", { name: "Checagens em destaque" }),
+	).toBeVisible();
+});
+
+test("lists only public pages in the sitemap", async ({ request }) => {
+	const sitemap = await (await request.get("/sitemap.xml")).text();
+	expect(sitemap).toContain("/exemplos/data-das-eleicoes");
+	expect(sitemap).toContain("/destaques");
+});
+
+test("keeps the WhatsApp webhook closed when the bot is not configured", async ({
+	request,
+}) => {
+	const response = await request.post("/api/whatsapp", { data: {} });
+	expect(response.status()).toBe(404);
+});

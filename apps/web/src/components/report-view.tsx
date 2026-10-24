@@ -1,7 +1,9 @@
 import { Badge } from "@desconfia/ui/components/badge";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
+import { ViewTransition } from "react";
 import {
+	claimTransitionName,
 	type Finding,
 	formatDate,
 	formatShareText,
@@ -39,9 +41,12 @@ function Section({
 	);
 }
 
-function FindingItem({ finding }: { finding: Finding }) {
+function FindingItem({ finding, index }: { finding: Finding; index: number }) {
 	return (
-		<li className="border-l-2 py-1 pl-4">
+		<li
+			className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-left-1 fill-mode-both border-l-2 py-1 pl-4 duration-500"
+			style={{ animationDelay: `${150 + index * 80}ms` }}
+		>
 			<p className="leading-relaxed text-pretty">
 				{finding.text}{" "}
 				{finding.sourceIds.map((id) => (
@@ -64,11 +69,12 @@ function FindingItem({ finding }: { finding: Finding }) {
 
 export function ReportView({
 	report,
-	isExample = false,
+	exampleSlug,
 }: {
 	report: Report;
-	isExample?: boolean;
+	exampleSlug?: string;
 }) {
+	const isExample = Boolean(exampleSlug);
 	const groups = findingGroups
 		.map((group) => ({
 			...group,
@@ -79,7 +85,7 @@ export function ReportView({
 		.filter((group) => group.findings.length > 0);
 
 	return (
-		<article className="space-y-10">
+		<article className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 space-y-10 duration-500">
 			{isExample ? (
 				<p
 					role="note"
@@ -94,9 +100,13 @@ export function ReportView({
 				<p className="text-muted-foreground text-xs font-medium tracking-[0.18em] uppercase">
 					Relatório de verificação
 				</p>
-				<blockquote className="text-2xl leading-snug font-semibold tracking-tight text-balance sm:text-3xl">
-					“{report.claim}”
-				</blockquote>
+				<ViewTransition
+					name={exampleSlug ? claimTransitionName(exampleSlug) : undefined}
+				>
+					<blockquote className="text-2xl leading-snug font-semibold tracking-tight text-balance sm:text-3xl">
+						“{report.claim}”
+					</blockquote>
+				</ViewTransition>
 				{report.inputUrl ? (
 					<p className="text-muted-foreground text-sm">
 						Alegação extraída de{" "}
@@ -157,8 +167,12 @@ export function ReportView({
 				groups.map((group) => (
 					<Section key={group.stance} title={group.title}>
 						<ul className="space-y-4">
-							{group.findings.map((finding) => (
-								<FindingItem key={finding.text} finding={finding} />
+							{group.findings.map((finding, index) => (
+								<FindingItem
+									key={finding.text}
+									finding={finding}
+									index={index}
+								/>
 							))}
 						</ul>
 					</Section>
@@ -199,7 +213,7 @@ export function ReportView({
 							<li
 								key={source.id}
 								id={`fonte-${source.id}`}
-								className="target:bg-muted/60 scroll-mt-24 space-y-2 p-4"
+								className="motion-safe:target:animate-highlight motion-reduce:target:bg-muted/60 scroll-mt-24 space-y-2 p-4"
 							>
 								<div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
 									<span className="text-foreground font-mono font-medium">

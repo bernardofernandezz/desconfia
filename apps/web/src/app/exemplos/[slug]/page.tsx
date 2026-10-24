@@ -28,7 +28,7 @@ export default async function ExamplePage(
 
 	return (
 		<div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
-			<ReportView report={example.report} isExample />
+			<ReportView report={example.report} exampleSlug={example.slug} />
 		</div>
 	);
 }

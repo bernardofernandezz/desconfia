@@ -9,8 +9,9 @@ import { Button } from "@desconfia/ui/components/button";
 import { AlertCircle, ArrowRight, Link2, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { VerifyEvent } from "@/app/api/verify/route";
+import { useFocusOnMount } from "@/hooks/use-focus-on-mount";
 import { parseInput } from "@/lib/research/input";
 import { ResearchProgress } from "./research-progress";
 
@@ -45,6 +46,7 @@ export function ClaimForm() {
 	const [fieldError, setFieldError] = useState<string | null>(null);
 	const [failure, setFailure] = useState<Failure | null>(null);
 	const [events, setEvents] = useState<VerifyEvent[] | null>(null);
+	const requestRef = useRef<AbortController | null>(null);
 
 	const isRunning = events !== null && !failure;
 
@@ -59,11 +61,15 @@ export function ClaimForm() {
 		setFailure(null);
 		setEvents([]);
 
+		const request = new AbortController();
+		requestRef.current = request;
+
 		try {
 			const response = await fetch("/api/verify", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ query }),
+				signal: request.signal,
 			});
 
 			if (!response.ok) {
@@ -81,12 +87,18 @@ export function ClaimForm() {
 				message: "A conexão foi interrompida antes do fim da pesquisa.",
 			});
 		} catch {
+			if (request.signal.aborted) return;
 			setFailure({
 				code: "network",
 				message:
 					"Não foi possível conectar ao servidor. Verifique sua internet.",
 			});
 		}
+	}
+
+	function cancel() {
+		requestRef.current?.abort();
+		setEvents(null);
 	}
 
 	function handleSubmit(event: React.FormEvent) {
@@ -164,6 +176,7 @@ export function ClaimForm() {
 				<ResearchProgress
 					events={events}
 					isUrl={/^https?:\/\//i.test(query.trim())}
+					onCancel={cancel}
 				/>
 			) : null}
 
@@ -179,9 +192,11 @@ function FailureAlert({
 	failure: Failure;
 	onRetry: () => void;
 }) {
+	const ref = useFocusOnMount<HTMLDivElement>();
+
 	if (failure.code === "demo_mode") {
 		return (
-			<Alert className="p-4 text-sm">
+			<Alert ref={ref} tabIndex={-1} className="p-4 text-sm outline-none">
 				<AlertCircle aria-hidden />
 				<AlertTitle>Modo demonstração</AlertTitle>
 				<AlertDescription className="text-sm">
@@ -196,7 +211,12 @@ function FailureAlert({
 
 	const canRetry = failure.code !== "invalid_input";
 	return (
-		<Alert variant="destructive" className="p-4 text-sm">
+		<Alert
+			ref={ref}
+			tabIndex={-1}
+			variant="destructive"
+			className="p-4 text-sm outline-none"
+		>
 			<AlertCircle aria-hidden />
 			<AlertTitle>Não foi possível concluir a verificação</AlertTitle>
 			<AlertDescription className="space-y-3 text-sm">

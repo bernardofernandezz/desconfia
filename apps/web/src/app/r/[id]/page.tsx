@@ -8,10 +8,13 @@ export async function generateMetadata(
 	props: PageProps<"/r/[id]">,
 ): Promise<Metadata> {
 	const report = await getReport((await props.params).id);
+	if (!report) return { title: "Relatório não encontrado" };
+
+	const title = `${verdictLabels[report.verdict]}: “${report.claim}”`;
 	return {
-		title: report
-			? `${verdictLabels[report.verdict]} — relatório de verificação`
-			: "Relatório não encontrado",
+		title,
+		description: report.summary,
+		openGraph: { title, description: report.summary },
 		robots: { index: false, follow: false },
 	};
 }

@@ -10,15 +10,13 @@ const limits = {
 
 export type RateLimitBucket = keyof typeof limits;
 
-const clientIp = (request: Request) =>
+export const clientIp = (request: Request) =>
 	request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
 
-// Stored in the database so the limit holds across server instances; IPs are kept only as hashes.
-export async function isRateLimited(request: Request, bucket: RateLimitBucket) {
+// Stored in the database so the limit holds across server instances; keys are kept only as hashes.
+export async function isRateLimited(bucket: RateLimitBucket, key: string) {
 	const { max, windowMs } = limits[bucket];
-	const keyHash = createHash("sha256")
-		.update(`${bucket}:${clientIp(request)}`)
-		.digest("hex");
+	const keyHash = createHash("sha256").update(`${bucket}:${key}`).digest("hex");
 	const now = Date.now();
 	const ownHits = eq(rateLimitHits.keyHash, keyHash);
 

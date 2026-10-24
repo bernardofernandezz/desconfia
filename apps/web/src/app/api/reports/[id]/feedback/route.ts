@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { isRateLimited } from "@/lib/rate-limit";
+import { clientIp, isRateLimited } from "@/lib/rate-limit";
 import { getReport, saveFeedback } from "@/lib/reports";
 
 const feedbackSchema = z.object({
@@ -17,7 +17,7 @@ export async function POST(
 	if (!parsed.success) {
 		return Response.json({ message: "Dados inválidos." }, { status: 400 });
 	}
-	if (await isRateLimited(request, "feedback")) {
+	if (await isRateLimited("feedback", clientIp(request))) {
 		return Response.json(
 			{ message: "Muitos envios seguidos. Tente mais tarde." },
 			{ status: 429 },

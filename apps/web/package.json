@@ -1,38 +1,44 @@
 {
-  "name": "web",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev --port 3001",
-    "build": "next build",
-    "check-types": "tsc --noEmit",
-    "start": "next start",
-    "env:generate": "varlock codegen"
-  },
-  "dependencies": {
-    "@desconfia/db": "workspace:*",
-    "@desconfia/ui": "workspace:*",
-    "@libsql/client": "catalog:",
-    "@swc/helpers": "^0.5.23",
-    "@varlock/nextjs-integration": "1.2.5",
-    "babel-plugin-react-compiler": "^1.0.0",
-    "libsql": "catalog:",
-    "lucide-react": "catalog:",
-    "next": "^16.3.4",
-    "next-themes": "catalog:",
-    "react": "catalog:",
-    "react-dom": "catalog:",
-    "sonner": "catalog:",
-    "varlock": "catalog:",
-    "zod": "catalog:"
-  },
-  "devDependencies": {
-    "@desconfia/config": "workspace:*",
-    "@tailwindcss/postcss": "catalog:",
-    "@types/node": "catalog:",
-    "@types/react": "catalog:",
-    "@types/react-dom": "catalog:",
-    "tailwindcss": "catalog:",
-    "typescript": "catalog:"
-  }
+	"name": "web",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "next dev --port 3001",
+		"build": "next build",
+		"check-types": "next typegen && tsc --noEmit",
+		"start": "next start",
+		"env:generate": "varlock codegen",
+		"test": "bun test"
+	},
+	"dependencies": {
+		"@ai-sdk/google": "^4.0.105",
+		"@desconfia/db": "workspace:*",
+		"@desconfia/ui": "workspace:*",
+		"@libsql/client": "catalog:",
+		"@swc/helpers": "^0.5.23",
+		"@varlock/nextjs-integration": "1.2.5",
+		"ai": "^7.0.153",
+		"babel-plugin-react-compiler": "^1.0.0",
+		"drizzle-orm": "1.0.0-rc.5",
+		"libsql": "catalog:",
+		"lucide-react": "catalog:",
+		"nanoid": "^6.0.2",
+		"next": "^16.3.4",
+		"next-themes": "catalog:",
+		"react": "catalog:",
+		"react-dom": "catalog:",
+		"sonner": "catalog:",
+		"varlock": "catalog:",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@desconfia/config": "workspace:*",
+		"@tailwindcss/postcss": "catalog:",
+		"@types/bun": "^1.4.4",
+		"@types/node": "catalog:",
+		"@types/react": "catalog:",
+		"@types/react-dom": "catalog:",
+		"tailwindcss": "catalog:",
+		"typescript": "catalog:"
+	}
 }

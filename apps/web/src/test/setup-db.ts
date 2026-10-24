@@ -1,3 +1,4 @@
+import "varlock/auto-load";
 import { mock } from "bun:test";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";

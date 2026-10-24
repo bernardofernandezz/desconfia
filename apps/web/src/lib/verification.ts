@@ -127,6 +127,8 @@ export async function runVerification(
 	emit({ stage: "done", href, created, deleteToken });
 
 	return {
+		href,
+		reportIds,
 		claims: claims.length,
 		reused: claims.length - created.length,
 		verdicts,

@@ -94,3 +94,10 @@ test("navigates with the mobile menu", async ({ page, isMobile }) => {
 	await page.getByRole("menuitem", { name: "Sobre" }).click();
 	await expect(page).toHaveURL(/\/sobre$/);
 });
+
+test("keeps the WhatsApp webhook closed when the bot is not configured", async ({
+	request,
+}) => {
+	const response = await request.post("/api/whatsapp", { data: {} });
+	expect(response.status()).toBe(404);
+});

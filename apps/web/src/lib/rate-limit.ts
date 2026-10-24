@@ -6,6 +6,7 @@ import { db } from "@/services";
 const limits = {
 	verify: { max: 5, windowMs: 10 * 60_000 },
 	feedback: { max: 10, windowMs: 60 * 60_000 },
+	whatsapp: { max: 10, windowMs: 60 * 60_000 },
 } as const;
 
 export type RateLimitBucket = keyof typeof limits;
@@ -13,7 +14,7 @@ export type RateLimitBucket = keyof typeof limits;
 export const clientIp = (request: Request) =>
 	request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
 
-// Stored in the database so the limit holds across server instances; keys are kept only as hashes.
+// Stored in the database so the limit holds across server instances; keys (IPs, phone numbers) are kept only as hashes.
 export async function isRateLimited(bucket: RateLimitBucket, key: string) {
 	const { max, windowMs } = limits[bucket];
 	const keyHash = createHash("sha256").update(`${bucket}:${key}`).digest("hex");

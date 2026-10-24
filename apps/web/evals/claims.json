@@ -1,0 +1,73 @@
+[
+	{
+		"claim": "A Constituição permite apenas uma reeleição consecutiva para presidente",
+		"expected": "supported"
+	},
+	{
+		"claim": "O presidente pode se reeleger quantas vezes quiser",
+		"expected": "contradicted"
+	},
+	{
+		"claim": "O primeiro turno da eleição presidencial acontece no primeiro domingo de outubro",
+		"expected": "supported"
+	},
+	{
+		"claim": "O voto é obrigatório para quem tem mais de 70 anos",
+		"expected": "contradicted"
+	},
+	{
+		"claim": "O voto é facultativo para jovens de 16 e 17 anos",
+		"expected": "supported"
+	},
+	{ "claim": "O mandato de senador dura oito anos", "expected": "supported" },
+	{
+		"claim": "O mandato de deputado federal dura seis anos",
+		"expected": "contradicted"
+	},
+	{
+		"claim": "A Câmara dos Deputados tem 513 deputados federais",
+		"expected": "supported"
+	},
+	{ "claim": "Cada estado elege cinco senadores", "expected": "contradicted" },
+	{
+		"claim": "O Supremo Tribunal Federal é composto por onze ministros",
+		"expected": "supported"
+	},
+	{
+		"claim": "A idade mínima para ser candidato a presidente é 35 anos",
+		"expected": "supported"
+	},
+	{
+		"claim": "A idade mínima para ser candidato a senador é 25 anos",
+		"expected": "contradicted"
+	},
+	{
+		"claim": "O Pix foi lançado pelo Banco Central em 2020",
+		"expected": "supported"
+	},
+	{ "claim": "Brasília foi inaugurada em 1960", "expected": "supported" },
+	{
+		"claim": "O Programa Bolsa Família foi instituído pela Lei 14.601 de 2023",
+		"expected": "supported"
+	},
+	{
+		"claim": "O Brasil tem 26 estados e o Distrito Federal",
+		"expected": "supported"
+	},
+	{
+		"claim": "O mandato do presidente da República é de cinco anos",
+		"expected": "contradicted"
+	},
+	{
+		"claim": "Pessoas analfabetas são proibidas de votar no Brasil",
+		"expected": "contradicted"
+	},
+	{
+		"claim": "A urna eletrônica é usada nas eleições brasileiras desde 1996",
+		"expected": "supported"
+	},
+	{
+		"claim": "O valor do salário mínimo é definido pelo Supremo Tribunal Federal",
+		"expected": "contradicted"
+	}
+]

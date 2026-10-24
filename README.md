@@ -37,6 +37,8 @@ O schema está em `apps/web/.env.schema`. Copie `apps/web/.env.example` para `ap
 | `TAVILY_API_KEY` | para pesquisa ao vivo | Chave gratuita em https://app.tavily.com (1000 créditos/mês). |
 | `GOOGLE_GENERATIVE_AI_API_KEY` | para pesquisa ao vivo | Chave gratuita em https://aistudio.google.com/apikey. |
 | `GEMINI_MODEL` | não | Padrão: `gemini-2.5-flash`. |
+| `SITE_URL` | não | URL pública usada em prévias de link, no sitemap e nas respostas do bot. Na Vercel é resolvida automaticamente. |
+| `WHATSAPP_*` | não | Ativam o bot de WhatsApp (veja abaixo). |
 | `GOOGLE_FACT_CHECK_API_KEY` | não | Ativa a busca de checagens profissionais (Lupa, Aos Fatos…) via [Google Fact Check Tools API](https://developers.google.com/fact-check/tools/api), gratuita. |
 
 **Sem as duas chaves a aplicação roda em modo demonstração**: tudo funciona, mas ao enviar uma alegação aparece um aviso de que a pesquisa ao vivo está desativada. Os quatro relatórios em `/exemplos/*` foram escritos manualmente, estão identificados como ilustrativos e citam fontes reais (LexML).
@@ -66,6 +68,35 @@ O CI (`.github/workflows/ci.yml`) roda lint, tipos, testes, migrations, build e 
 4. As URLs absolutas das prévias de link são resolvidas automaticamente na Vercel. Em outro host, defina `SITE_URL`.
 
 O limite de requisições fica na tabela `rate_limit_hits` (IP guardado só como hash), então funciona com várias instâncias. Cada verificação gera uma linha JSON `{"event":"verification",…}` nos logs com resultado, tipo de entrada, duração, número de alegações, reaproveitadas e vereditos, nunca com o texto da alegação nem o IP.
+
+## Canais
+
+### Bot de WhatsApp
+
+A pessoa encaminha o texto, o link ou o print para o número do Desconfia e recebe o veredito, um resumo e o link do relatório. O bot usa o mesmo pipeline do site, com cache, várias alegações por mensagem e limite de 10 verificações por hora por número (guardado só como hash).
+
+1. Crie um app no [Meta for Developers](https://developers.facebook.com) com o produto WhatsApp e anote o *Phone number ID*, um *access token* permanente e o *App secret*.
+2. Configure `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN` (qualquer texto que você escolher) e `SITE_URL`, se não estiver na Vercel.
+3. Registre o webhook `https://<seu-domínio>/api/whatsapp` com o mesmo verify token e assine o campo `messages`.
+
+Toda chamada ao webhook tem a assinatura `X-Hub-Signature-256` verificada; sem as quatro variáveis, a rota responde 404. A resposta ao Meta é imediata e a verificação roda depois, com `after()`.
+
+### Extensão de navegador
+
+A pasta `extension/` é uma extensão Manifest V3 sem build. Ela adiciona "Verificar no Desconfia" ao menu de contexto quando há texto selecionado e abre o site com o campo já preenchido (`/?q=…`). A pessoa revisa o texto antes de verificar.
+
+Para instalar: `chrome://extensions` → *Modo do desenvolvedor* → *Carregar sem compactação* → escolha a pasta `extension`. Em *Opções*, informe o endereço do Desconfia (padrão: `http://localhost:3001`). Testes: `bun test ./extension`.
+
+### Destaques
+
+`/destaques` lista relatórios escolhidos pela equipe. Nada entra ali automaticamente:
+
+```bash
+bun run --cwd apps/web feature <id-do-relatório>            # destacar
+bun run --cwd apps/web feature <id-do-relatório> --remove   # remover
+```
+
+Só relatórios em destaque podem ser indexados por buscadores e aparecem no `sitemap.xml`; todos os outros continuam `noindex` e acessíveis apenas pelo link.
 
 ## Limitações conhecidas
 

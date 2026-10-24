@@ -35,10 +35,18 @@ export default function RootLayout({
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
 			>
+				<a
+					href="#conteudo"
+					className="bg-foreground text-background sr-only z-50 rounded-md px-4 py-2 text-sm focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
+				>
+					Pular para o conteúdo
+				</a>
 				<Providers>
 					<div className="flex min-h-svh flex-col">
 						<SiteHeader />
-						<main className="flex-1">{children}</main>
+						<main id="conteudo" tabIndex={-1} className="flex-1 outline-none">
+							{children}
+						</main>
 						<SiteFooter />
 					</div>
 				</Providers>

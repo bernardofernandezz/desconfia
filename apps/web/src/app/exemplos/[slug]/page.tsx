@@ -10,10 +10,13 @@ export async function generateMetadata(
 	props: PageProps<"/exemplos/[slug]">,
 ): Promise<Metadata> {
 	const example = findExample((await props.params).slug);
+	if (!example) return { title: "Exemplo não encontrado" };
+
+	const title = `Exemplo: “${example.report.claim}”`;
 	return {
-		title: example
-			? `Exemplo: ${example.report.claim}`
-			: "Exemplo não encontrado",
+		title,
+		description: example.report.summary,
+		openGraph: { title, description: example.report.summary },
 	};
 }
 

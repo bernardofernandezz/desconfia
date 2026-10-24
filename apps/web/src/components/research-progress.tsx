@@ -1,15 +1,22 @@
+import { Button } from "@desconfia/ui/components/button";
 import { Check, Loader2 } from "lucide-react";
 import type { VerifyEvent } from "@/app/api/verify/route";
+import { useFocusOnMount } from "@/hooks/use-focus-on-mount";
 
 type Step = { stage: VerifyEvent["stage"]; label: string };
+
+type ResearchProgressProps = {
+	events: VerifyEvent[];
+	isUrl: boolean;
+	onCancel: () => void;
+};
 
 export function ResearchProgress({
 	events,
 	isUrl,
-}: {
-	events: VerifyEvent[];
-	isUrl: boolean;
-}) {
+	onCancel,
+}: ResearchProgressProps) {
+	const ref = useFocusOnMount<HTMLElement>();
 	const found = events.find((event) => event.stage === "sources");
 	const searching = events.find((event) => event.stage === "searching");
 
@@ -31,8 +38,18 @@ export function ResearchProgress({
 	);
 
 	return (
-		<section aria-live="polite" className="bg-card rounded-xl border p-5">
-			<h2 className="text-sm font-medium">Pesquisa em andamento</h2>
+		<section
+			ref={ref}
+			tabIndex={-1}
+			aria-live="polite"
+			className="bg-card rounded-xl border p-5 outline-none"
+		>
+			<div className="flex items-center justify-between gap-4">
+				<h2 className="text-sm font-medium">Pesquisa em andamento</h2>
+				<Button variant="ghost" size="sm" onClick={onCancel}>
+					Cancelar
+				</Button>
+			</div>
 			{searching ? (
 				<p className="text-muted-foreground mt-1 text-sm">
 					Alegação: <span className="text-foreground">“{searching.claim}”</span>

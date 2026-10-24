@@ -1,8 +1,10 @@
 import { Badge } from "@desconfia/ui/components/badge";
 import { ExternalLink } from "lucide-react";
+import Link from "next/link";
 import {
 	type Finding,
 	formatDate,
+	formatShareText,
 	type Report,
 	sourceKindLabels,
 	verdictLabels,
@@ -108,7 +110,7 @@ export function ReportView({
 						</a>
 					</p>
 				) : null}
-				<div className="flex flex-wrap items-center justify-between gap-4 border-y py-4">
+				<div className="space-y-4 border-y py-4">
 					<dl className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
 						<div className="flex items-center gap-2">
 							<dt className="sr-only">Avaliação</dt>
@@ -118,6 +120,12 @@ export function ReportView({
 									className="h-7 px-3 text-sm"
 								/>
 							</dd>
+							<Link
+								href="/sobre#avaliacoes"
+								className="text-muted-foreground hover:text-foreground text-xs underline underline-offset-2 print:hidden"
+							>
+								O que significa?
+							</Link>
 						</div>
 						<div className="flex gap-1.5">
 							<dt className="text-muted-foreground">Confiança:</dt>
@@ -134,6 +142,7 @@ export function ReportView({
 					</dl>
 					<ShareActions
 						title={`${verdictLabels[report.verdict]}: ${report.claim}`}
+						text={formatShareText(report)}
 					/>
 				</div>
 				<p className="text-lg leading-relaxed text-pretty">{report.summary}</p>
@@ -214,6 +223,9 @@ export function ReportView({
 									/>
 									<span className="sr-only">(abre em nova aba)</span>
 								</a>
+								<p className="hidden text-xs break-all print:block">
+									{source.url}
+								</p>
 								{source.excerpt ? (
 									<p className="text-muted-foreground line-clamp-3 text-sm leading-relaxed">
 										{source.excerpt}

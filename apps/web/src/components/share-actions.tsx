@@ -1,49 +1,74 @@
 "use client";
 
 import { Button } from "@desconfia/ui/components/button";
-import { Link2, Share2 } from "lucide-react";
+import { ClipboardCopy, Link2, MessageCircle, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-export function ShareActions({ title }: { title: string }) {
+type ShareActionsProps = { title: string; text: string };
+
+async function copy(value: string, successMessage: string) {
+	try {
+		await navigator.clipboard.writeText(value);
+		toast.success(successMessage);
+	} catch {
+		toast.error("Não foi possível copiar. Selecione o texto manualmente.");
+	}
+}
+
+export function ShareActions({ title, text }: ShareActionsProps) {
 	const [canShare, setCanShare] = useState(false);
 
 	useEffect(() => setCanShare(typeof navigator.share === "function"), []);
 
-	async function copyLink() {
-		try {
-			await navigator.clipboard.writeText(window.location.href);
-			toast.success("Link copiado");
-		} catch {
-			toast.error(
-				"Não foi possível copiar. Copie o endereço na barra do navegador.",
-			);
-		}
+	const url = () => window.location.href;
+	const fullText = () => `${text}\n\nRelatório completo: ${url()}`;
+
+	function sendToWhatsApp() {
+		const href = `https://wa.me/?text=${encodeURIComponent(fullText())}`;
+		window.open(href, "_blank", "noopener,noreferrer");
 	}
 
 	async function share() {
 		try {
-			await navigator.share({ title, url: window.location.href });
+			await navigator.share({ title, url: url() });
 		} catch (error) {
 			if (error instanceof DOMException && error.name === "AbortError") return;
-			copyLink();
+			copy(url(), "Link copiado");
 		}
 	}
 
 	return (
-		<div className="flex gap-2">
+		<div className="flex flex-wrap gap-2 print:hidden">
+			<Button onClick={sendToWhatsApp} className="h-9 rounded-lg px-3 text-sm">
+				<MessageCircle aria-hidden />
+				Enviar no WhatsApp
+			</Button>
 			<Button
 				variant="outline"
-				onClick={copyLink}
+				onClick={() => copy(fullText(), "Resumo copiado")}
+				className="h-9 rounded-lg px-3 text-sm"
+			>
+				<ClipboardCopy aria-hidden />
+				Copiar resumo
+			</Button>
+			<Button
+				variant="outline"
+				onClick={() => copy(url(), "Link copiado")}
 				className="h-9 rounded-lg px-3 text-sm"
 			>
 				<Link2 aria-hidden />
 				Copiar link
 			</Button>
 			{canShare ? (
-				<Button onClick={share} className="h-9 rounded-lg px-3 text-sm">
+				<Button
+					variant="outline"
+					size="icon"
+					onClick={share}
+					className="size-9 rounded-lg"
+				>
 					<Share2 aria-hidden />
-					Compartilhar
+					<span className="sr-only">Mais opções de compartilhamento</span>
 				</Button>
 			) : null}
 		</div>

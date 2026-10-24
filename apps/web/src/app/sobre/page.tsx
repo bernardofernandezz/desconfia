@@ -50,7 +50,7 @@ export default function AboutPage() {
 				</ol>
 			</section>
 
-			<section className="space-y-3">
+			<section id="avaliacoes" className="scroll-mt-24 space-y-3">
 				<h2 className="text-xl font-semibold tracking-tight">
 					O que cada avaliação significa
 				</h2>

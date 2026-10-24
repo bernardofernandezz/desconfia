@@ -67,3 +67,14 @@ export function formatDate(iso: string) {
 		timeZone: "America/Sao_Paulo",
 	}).format(new Date(iso));
 }
+
+export function formatShareText(report: Report) {
+	const lines = [
+		`*${verdictLabels[report.verdict]}* — verificado pelo Desconfia`,
+		`“${report.claim}”`,
+		report.summary,
+	];
+	const mainSource = report.sources[0];
+	if (mainSource) lines.push(`Fonte principal: ${mainSource.url}`);
+	return lines.join("\n\n");
+}

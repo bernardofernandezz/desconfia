@@ -87,6 +87,12 @@
 }
 
 @theme inline {
+	--animate-highlight: highlight 1.8s ease-out;
+	@keyframes highlight {
+		from {
+			background-color: var(--muted);
+		}
+	}
 	--font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 	--color-verdict-supported: var(--verdict-supported);
 	--color-verdict-contradicted: var(--verdict-contradicted);
@@ -141,5 +147,13 @@
 	}
 	html {
 		@apply font-sans;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	::view-transition-group(*),
+	::view-transition-old(*),
+	::view-transition-new(*) {
+		animation: none;
 	}
 }

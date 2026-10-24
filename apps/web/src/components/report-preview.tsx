@@ -20,7 +20,7 @@ export function ReportPreview({
 				aria-hidden
 				className="bg-card/60 absolute inset-0 -translate-x-5 translate-y-3 -rotate-2 rounded-2xl border"
 			/>
-			<div className="bg-card shadow-foreground/5 relative space-y-4 rounded-2xl border p-6 shadow-xl">
+			<div className="bg-card shadow-foreground/5 relative space-y-4 rounded-2xl border p-6 shadow-xl transition-transform duration-300 motion-safe:hover:-translate-y-1">
 				<p className="text-muted-foreground text-xs">Exemplo de relatório</p>
 				<VerdictBadge verdict={report.verdict} />
 				<p className="text-lg leading-snug font-semibold tracking-tight">

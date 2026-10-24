@@ -78,3 +78,5 @@ export function formatShareText(report: Report) {
 	if (mainSource) lines.push(`Fonte principal: ${mainSource.url}`);
 	return lines.join("\n\n");
 }
+
+export const claimTransitionName = (slug: string) => `claim-${slug}`;

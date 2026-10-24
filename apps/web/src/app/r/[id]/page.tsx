@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { ReportToolbar } from "@/components/report-toolbar";
 import { ReportView } from "@/components/report-view";
 import { verdictLabels } from "@/lib/report";
 import { getReport } from "@/lib/reports";
@@ -20,12 +21,21 @@ export async function generateMetadata(
 }
 
 export default async function ReportPage(props: PageProps<"/r/[id]">) {
-	const report = await getReport((await props.params).id);
+	const { id } = await props.params;
+	const report = await getReport(id);
 	if (!report) notFound();
 
 	return (
-		<div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
+		<div className="mx-auto max-w-3xl space-y-8 px-4 py-12 sm:px-6 sm:py-16">
 			<ReportView report={report} />
+			<ReportToolbar
+				entry={{
+					id,
+					claim: report.claim,
+					verdict: report.verdict,
+					researchedAt: report.researchedAt,
+				}}
+			/>
 		</div>
 	);
 }

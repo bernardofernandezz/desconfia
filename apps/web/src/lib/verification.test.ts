@@ -56,12 +56,14 @@ type VerificationEvent = import("./verification").VerificationEvent;
 
 async function verify(request: Parameters<typeof runVerification>[0]) {
 	const events: VerificationEvent[] = [];
-	await runVerification(request, new AbortController().signal, (event) =>
-		events.push(event),
+	const summary = await runVerification(
+		request,
+		new AbortController().signal,
+		(event) => events.push(event),
 	);
 	const done = events.at(-1);
 	if (done?.stage !== "done") throw new Error("verification did not finish");
-	return { events, done };
+	return { events, done, summary };
 }
 
 const text = (claim: string) =>
@@ -100,6 +102,7 @@ describe("runVerification", () => {
 		expect(second.events.map((event) => event.stage)).toContain("cached");
 		expect(second.done.href).toBe(first.done.href);
 		expect(second.done.created).toEqual([]);
+		expect(second.summary).toEqual({ claims: 1, reused: 1, verdicts: [] });
 	});
 
 	test("splits long messages into claims and groups the reports", async () => {

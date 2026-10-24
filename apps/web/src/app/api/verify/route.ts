@@ -50,6 +50,10 @@ async function readJsonRequest(request: Request): Promise<ParsedRequest> {
 	return { ok: true, request: { kind: "new", input: parsed.input } };
 }
 
+// One JSON line per verification for log-based metrics. Never includes the claim or the IP.
+const logVerification = (fields: Record<string, unknown>) =>
+	console.info(JSON.stringify({ event: "verification", ...fields }));
+
 const jsonError = (status: number, code: string, message: string) =>
 	Response.json({ stage: "error", code, message } satisfies VerificationEvent, {
 		status,
@@ -91,15 +95,27 @@ export async function POST(request: Request) {
 		async start(controller) {
 			const send = (event: VerificationEvent) =>
 				controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
+			const startedAt = Date.now();
+			const kind =
+				parsed.request.kind === "refresh"
+					? "refresh"
+					: parsed.request.input.kind;
 			try {
-				await runVerification(parsed.request, signal, send);
+				const summary = await runVerification(parsed.request, signal, send);
+				logVerification({
+					outcome: "done",
+					kind,
+					durationMs: Date.now() - startedAt,
+					...summary,
+				});
 			} catch (error) {
 				const { code, message } = toResearchError(error);
-				console.error(
-					"verify failed:",
-					code,
-					error instanceof Error ? error.name : "unknown",
-				);
+				logVerification({
+					outcome: code,
+					kind,
+					durationMs: Date.now() - startedAt,
+					error: error instanceof Error ? error.name : "unknown",
+				});
 				send({ stage: "error", code, message });
 			} finally {
 				controller.close();

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { FeedbackForm } from "@/components/feedback-form";
 import { ReportToolbar } from "@/components/report-toolbar";
 import { ReportView } from "@/components/report-view";
 import { verdictLabels } from "@/lib/report";
@@ -36,6 +37,7 @@ export default async function ReportPage(props: PageProps<"/r/[id]">) {
 					researchedAt: report.researchedAt,
 				}}
 			/>
+			<FeedbackForm reportId={id} />
 		</div>
 	);
 }

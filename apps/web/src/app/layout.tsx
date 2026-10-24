@@ -5,6 +5,7 @@ import "../index.css";
 import Providers from "@/components/providers";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { ENV } from "@/env.server";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -17,6 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+	metadataBase: ENV.SITE_URL ? new URL(ENV.SITE_URL) : undefined,
 	title: {
 		default: "Desconfia — verificação de alegações políticas",
 		template: "%s · Desconfia",

@@ -4,7 +4,7 @@
 		"expected": "supported"
 	},
 	{
-		"claim": "O presidente pode se reeleger quantas vezes quiser",
+		"claim": "O presidente pode ser reeleito para três mandatos consecutivos",
 		"expected": "contradicted"
 	},
 	{
@@ -47,7 +47,7 @@
 	},
 	{ "claim": "Brasília foi inaugurada em 1960", "expected": "supported" },
 	{
-		"claim": "O Programa Bolsa Família foi instituído pela Lei 14.601 de 2023",
+		"claim": "A Lei 14.601 de 2023 trata do Programa Bolsa Família",
 		"expected": "supported"
 	},
 	{

@@ -2,11 +2,14 @@ import "varlock/auto-load";
 import { isLiveResearchEnabled } from "@/lib/providers";
 import type { Verdict } from "@/lib/report";
 import { researchClaim } from "@/lib/research";
+import { toResearchError } from "@/lib/research/errors";
 import cases from "../evals/claims.json";
 
 type Outcome = Verdict | "erro";
 
 const CLAIM_TIMEOUT_MS = 120_000;
+// The Gemini free tier allows about 15 requests per minute.
+const PAUSE_BETWEEN_CLAIMS_MS = 4_000;
 const opposite: Partial<Record<Verdict, Verdict>> = {
 	supported: "contradicted",
 	contradicted: "supported",
@@ -27,6 +30,7 @@ for (const { claim, expected } of cases as {
 	expected: Verdict;
 }[]) {
 	let got: Outcome;
+	let reason = "";
 	try {
 		const report = await researchClaim(
 			claim,
@@ -35,11 +39,15 @@ for (const { claim, expected } of cases as {
 			() => {},
 		);
 		got = report.verdict;
-	} catch {
+	} catch (error) {
 		got = "erro";
+		reason = ` (${toResearchError(error).code})`;
 	}
 	results.push({ claim, expected, got });
-	console.log(`${got === expected ? "✓" : "✗"} ${got.padEnd(12)} ${claim}`);
+	await Bun.sleep(PAUSE_BETWEEN_CLAIMS_MS);
+	console.log(
+		`${got === expected ? "✓" : "✗"} ${got.padEnd(12)} ${claim}${reason}`,
+	);
 }
 
 const correct = results.filter((result) => result.got === result.expected);

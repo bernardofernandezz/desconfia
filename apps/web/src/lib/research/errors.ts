@@ -32,7 +32,7 @@ export function toResearchError(error: unknown): ResearchError {
 	if (APICallError.isInstance(cause) && cause.statusCode === 429) {
 		return new ResearchError(
 			"rate_limit",
-			"O provedor de IA está sobrecarregado.",
+			"O limite de uso do provedor de IA foi atingido. Tente novamente em alguns minutos.",
 		);
 	}
 	return new ResearchError("provider", "O provedor de IA retornou um erro.");

@@ -36,7 +36,7 @@ O schema está em `apps/web/.env.schema`. Copie `apps/web/.env.example` para `ap
 | `DATABASE_URL` | sim | `file:../../local.db` por padrão. Para usar o Turso, informe a URL `libsql://…`. |
 | `TAVILY_API_KEY` | para pesquisa ao vivo | Chave gratuita em https://app.tavily.com (1000 créditos/mês). |
 | `GOOGLE_GENERATIVE_AI_API_KEY` | para pesquisa ao vivo | Chave gratuita em https://aistudio.google.com/apikey. |
-| `GEMINI_MODEL` | não | Padrão: `gemini-2.5-flash`. |
+| `GEMINI_MODEL` | não | Padrão: `gemini-3.5-flash-lite`. |
 | `SITE_URL` | não | URL pública usada em prévias de link, no sitemap e nas respostas do bot. Na Vercel é resolvida automaticamente. |
 | `WHATSAPP_*` | não | Ativam o bot de WhatsApp (veja abaixo). |
 | `GOOGLE_FACT_CHECK_API_KEY` | não | Ativa a busca de checagens profissionais (Lupa, Aos Fatos…) via [Google Fact Check Tools API](https://developers.google.com/fact-check/tools/api), gratuita. |
